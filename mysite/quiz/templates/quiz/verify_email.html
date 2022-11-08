@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+Hi, {{ user.get_username }},
+Пожалуйста перейдите по ссылке, чтобы закончить регистрацию
+{{ protocol }}://{{ domain }}{% url 'email_verification' uidb64=uid token=token %}
+</body>
+</html>

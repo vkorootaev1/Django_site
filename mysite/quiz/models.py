@@ -32,6 +32,7 @@ class Quiz(models.Model):
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     house = models.ManyToManyField(House)
+    finished_at = models.DateTimeField()
 
     def __str__(self):
         return f"{self.title}"
@@ -58,5 +59,9 @@ class Answer(models.Model):
         unique_together = ['quiz', 'user']
 
 
+class News(models.Model):
+    title = models.CharField(max_length=100)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now=True)
 
 

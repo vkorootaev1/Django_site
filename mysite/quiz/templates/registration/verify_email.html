@@ -3,5 +3,5 @@ Hi, {{ user.get_username }},
 
 Пожалуйста перейдите по ссылке, чтобы закончить регистрацию:
 
-http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+http://{{ domain }}{% url 'verify_email' uidb64=uid token=token %}
 {% endautoescape %}

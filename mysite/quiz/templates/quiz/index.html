@@ -1,38 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-    <title>{{ title }}</title>
-</head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Navbar</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-            <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
-            <a class="nav-item nav-link" href="/">Главная</a>
-            <a class="nav-item nav-link" href="/">Добавить новость</a>
-            {% if request.user.is_authenticated %}
-                Добро пожаловать , {{ user.username }} | <a href="{% url 'logout' %}">Выход</a>
+{% extends 'base.html' %}
+{% block content %}
+    <style>
+    .content{
+        margin: 0 auto;
+    }
+    h5 {
+        color: red;
+    }
+    .card{
+        margin-bottom: 10px;
+    }
+</style>
+    <div class="col-6 content">
+        {% for item in list %}
+            <div class="card">
+                <div class="card-header">
+                    {% if item.created_at > item.finished_at %}
+                    <div>
+                        <h6 class="pizdec">Голосование закончилось</h6>
+                    </div>
                 {% else %}
-                <a class="nav-item nav-link" href="{% url 'register' %}">Регистрация</a>
-                <a class="nav-item nav-link" href="{% url 'login' %}">Авторизация</a>
-            {% endif %}
-        </div>
+                    <div>
+                        <h6>Голосование активно</h6>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.quiz }}</h5>
+                    <p class="card-text">Ваш ответ: {{ item.answer }}</p>
+                    <a href="#" class="btn btn-primary">Подробнее</a>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-</nav>
-{% if request.user.is_authenticated %}
-<div>
-    {% for item in list %}
-        <div>
-        {{ item.quiz }}               {{ item.answer }}
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-</body>
-</html>
+{% endblock %}
+
+
+
+
+
+
+{#{% block content %}#}
+{#    {% if request.user.is_authenticated %}#}
+{#        <div>#}
+{#            {% for item in list %}#}
+{#                {% if item.created_at > item.finished_at %}#}
+{#                    <div>#}
+{#                        Голосование закончилось {{ item.quiz }} {{ item.answer }}#}
+{#                    </div>#}
+{#                {% else %}#}
+{#                    <div>#}
+{#                        {{ item.quiz }} {{ item.answer }}#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            {% endfor %}#}
+{#        </div>#}
+{#    {% endif %}#}
+{#{% endblock %}#}

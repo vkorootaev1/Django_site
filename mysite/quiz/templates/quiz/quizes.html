@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+    <style>
+    .content{
+        margin: 0 auto;
+    }
+    h5 {
+        color: red;
+    }
+    .card{
+        margin-top: 60px;
+    }
+</style>
+    <div class="col-6 content">
+        {% for item in list %}
+            <div class="card">
+                <div class="card-header">
+                    {% if item.quiz.created_at > item.quiz.finished_at %}
+                    <div>
+                        <h6>Голосование закончилось</h6>
+                    </div>
+                {% else %}
+                    <div>
+                        <h6>Голосование активно</h6>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.quiz.title }}</h5>
+                    {% if item.answer != "Вы еще не проголосовали"%}
+                    <p class="card-text">Ваш ответ: {{ item.answer.get_display_answer }}</p>
+                        {% else %}
+                    <p class="card-text">Ваш ответ: Вы еще не проголосовали </p>
+                    {% endif %}
+                    <a href="{{ item.quiz.get_absolute_url }}" class="btn btn-primary">Подробнее</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

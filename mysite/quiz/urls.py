@@ -7,13 +7,14 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # path('register/', register, name='register'),
+    path('quiz/<int:quiz_id>/', view_quiz, name='view_quiz'),
     path('register/', Register.as_view(), name='register'),
     path('verify_email/<uidb64>/<token>/', EmailVerify.as_view(), name='verify_email'),
     path('invalid_verify', TemplateView.as_view(template_name='registration/invalid_verify.html'), name='invalid_verify'),
     path('confirm_email/', TemplateView.as_view(template_name='registration/confirm_email.html'), name='confirm_email'),
     path('login/', MyLoginView.as_view(next_page='home'), name='login'),
     path('logout/', user_logout, name='logout'),
-    path('', index, name='home'),
+    path('', quizes, name='home'),
     # path('activate/<uidb64>/<token>/', activate, name='activate'),
     path('reset_password/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html', html_email_template_name='registration/html_password_reset_email.html'), name='password_reset'),
     path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_sent.html'), name='password_reset_done'),

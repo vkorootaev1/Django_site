@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
+
 from .validators import validate_max_flat
 
 
@@ -37,20 +39,31 @@ class Quiz(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    def get_absolute_url(self):
+        return reverse('view_quiz', kwargs={'quiz_id': self.pk})
+
     class Meta:
         pass
 
 
-class Answer(models.Model):
-    answer_choice = [
+answer_choice = [
         ('T', 'Согласен'),
         ('F', 'Не согласен')
     ]
+
+
+class Answer(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     answer = models.CharField(choices=answer_choice, max_length=10)
     created_at = models.DateTimeField(auto_now=True)
     comment = models.TextField(blank=True)
+
+    def get_display_answer(self):
+        return self.get_answer_display()
+
+    def get_absolute_url(self):
+        return reverse('view_quiz', kwargs={'quiz_id': self.pk})
 
     def __str__(self):
         return f"{self.quiz} {self.user} {self.get_answer_display()}"

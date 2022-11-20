@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Authenti
     SetPasswordForm
 from django.core.exceptions import ValidationError
 
-from .models import User, House
+from .models import User, House, Answer, answer_choice
 from .utils import send_email_for_verify
 
 
@@ -171,4 +171,14 @@ class MyPasswordChangeForm(PasswordChangeForm):
     )
 
     field_order = ["old_password", "new_password1", "new_password2"]
+
+
+class AnswerForm(forms.Form):
+    answer = forms.ChoiceField(
+        label='Ответ',
+        choices=answer_choice,
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+    )
 

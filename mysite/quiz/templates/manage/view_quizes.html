@@ -1,0 +1,62 @@
+{% extends 'manage/base.html' %}
+{% block content %}
+    <style>
+        .content {
+            margin: 100px auto 0;
+            text-align: center;
+        }
+
+        li {
+            text-align: center;
+        }
+
+        h6 {
+            margin-bottom: 20px;
+        }
+
+        .card {
+            margin-top: 30px;
+        }
+    </style>
+    <div class="col-12 col-md-10 col-lg-8 col-xl-6 content">
+        <h3>{{ house.street }}, {{ house.house }}</h3>
+        {% for quiz in list_quiz %}
+            <div class="card">
+                <div class="card-header">
+                    {% now "Y-m-d-H-i-s" as now_datetime %}
+                    {% if now_datetime > quiz.finished_at|date:"Y-m-d-H-i-s" %}
+                        <div>
+                            <h6>Голосование закончилось</h6>
+                        </div>
+                    {% else %}
+                        <div>
+                            <h6>Голосование активно (закончится {{ quiz.finished_at }})</h6>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <a href="{% url 'manage_answers' house.pk quiz.pk %}" class="btn btn-primary">Подробнее</a>
+                </div>
+                <div class="card-footer">{{ quiz.created_at }}</div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<p>qwe</p>
+<p>{{ house_id }}</p>
+{% for quiz in list_quiz %}
+    <li>
+        <a href="{% url 'manage_answers' house_id quiz.pk %}">{{ quiz.title }} | {{ house.created_at }}</a>
+    </li>
+{% endfor %}
+</body>
+</html>

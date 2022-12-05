@@ -1,0 +1,27 @@
+{% extends 'manage/base.html' %}
+{% block content %}
+    <style>
+        .content {
+            margin: 100px auto 0;
+            text-align: center;
+        }
+
+        li {
+            text-align: center;
+        }
+
+        h6{
+            margin-bottom: 20px;
+        }
+    </style>
+    <div class="col-10 col-md-6 content">
+        <h6>Выберите дом</h6>
+        <ul class="list-group">
+            {% for house in object_list %}
+                <li class="list-group-item">
+                    <a href="{{ house.get_absolute_url }}">{{ house.street }}, {{ house.house }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

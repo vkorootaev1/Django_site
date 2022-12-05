@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
 
-from .validators import validate_max_flat
-
 
 class User(AbstractUser):
     house = models.ForeignKey('House', on_delete=models.CASCADE)
@@ -24,6 +22,9 @@ class House(models.Model):
     def __str__(self):
         return f"{self.street} {self.house}"
 
+    def get_absolute_url(self):
+        return reverse('manage_quizes', kwargs={'house_id': self.pk})
+
     class Meta:
         unique_together = ['street', 'house']
 
@@ -31,8 +32,8 @@ class House(models.Model):
 class Quiz(models.Model):
     title = models.CharField(max_length=150)
     text = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     house = models.ManyToManyField(House)
     finished_at = models.DateTimeField()
 
@@ -41,6 +42,9 @@ class Quiz(models.Model):
 
     def get_absolute_url(self):
         return reverse('view_quiz', kwargs={'quiz_id': self.pk})
+
+    def get_absolute_url_manage(self):
+        return reverse('manage_answers', kwargs={'house_id': self.house, 'quiz_id': self.pk})
 
     class Meta:
         pass

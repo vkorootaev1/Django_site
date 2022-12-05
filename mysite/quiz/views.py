@@ -1,144 +1,56 @@
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.views import LoginView
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.http import urlsafe_base64_decode
-from django.views import View
+import datetime
 
-from .forms import CustomUserCreationForm, UserLoginForm, MyAuthenticationForm, AnswerForm
-from django.core.exceptions import ValidationError
-from django.contrib.auth import login, logout, authenticate
-from .models import *
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator as token_generator
+from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordChangeDoneView, PasswordResetView, \
+    PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.utils.http import urlsafe_base64_decode
+from django.views import View, generic
+from django.views.generic import ListView
+
+from .custom_decorators import anonymous_required, admin_required
+from .forms import CustomUserCreationForm, MyAuthenticationForm, AnswerForm
+from .models import *
 from .utils import send_email_for_verify
 
 
 # Create your views here.
 
-# @user_passes_test(lambda u: u.is_superuser)
-# def index(request):
-#     if request.user.is_authenticated:
-#         list_quiz_answer = []
-#         id_house = request.user.house.id
-#         id_user = request.user.id
-#         print(f"Номер пользователя: {id_user}")
-#         print(f"Номер дома: {id_house}")
-#         all_quiz = Quiz.objects.filter(house=id_house)
-#         for item in all_quiz:
-#             d = {'quiz': item.title, 'created_at': item.created_at, 'finished_at': item.finished_at}
-#             try:
-#                 answer = Answer.objects.get(quiz=item.id, user=id_user)
-#                 d['answer'] = answer.get_answer_display()
-#             except:
-#                 d['answer'] = 'Вы еще не проголосовали'
-#             list_quiz_answer.append(d)
-#         print(list)
-#         context = {
-#             'title': 'Главная',
-#             'quiz': all_quiz,
-#             'list': list_quiz_answer,
-#         }
-#     else:
-#         context = {
-#             'title': 'Главная'
-#         }
-#     return render(request, template_name='quiz/index.html', context=context)
 
-
-def quizes(request):
-    list_quiz_answer = []
-    id_house = request.user.house.id
-    id_user = request.user.id
-    all_quiz = Quiz.objects.filter(house=id_house)
-    for item in all_quiz:
-        d = {"quiz": item}
+class Number_of_not_answers(generic.base.ContextMixin):
+    def get_context_data(self, *, object_list=None, **kwargs):
         try:
-            d["answer"] = Answer.objects.get(quiz=item.id, user=id_user)
+            now = datetime.datetime.now(tz=timezone.utc)
+            count_active_quiz = Quiz.objects.filter(house=self.request.user.house.id, finished_at__gt=now)
+            count_active_answers = Answer.objects.filter(quiz__in=count_active_quiz)
+            count_active_not_answer = len(count_active_quiz) - len(count_active_answers)
+            context = {
+                'count': count_active_not_answer
+            }
         except:
-            d["answer"] = "Вы еще не проголосовали"
-        list_quiz_answer.append(d)
-    return render(request, 'quiz/quizes.html', {"list": list_quiz_answer})
-
-# def activate(request, uidb64, token):
-#     User = get_user_model()
-#     try:
-#         uid = force_str(urlsafe_base64_decode(uidb64))
-#         user = User.objects.get(pk=uid)
-#     except:
-#         user = None
-#
-#     if user is not None and account_activation_token.check_token(user, token):
-#         user.is_active = True
-#         user.save()
-#         print('Пользователь подвтердил свою почту')
-#         login(request, user)
-#         return redirect('home')
-#     else:
-#         print('Не получилось подтвердить почту')
-#     return redirect('home')
+            context = {'count': 0}
+        return super().get_context_data(**context)
 
 
-# def activateEmail(request, user, to_email):
-#     # subject = "Activate your account"
-#     # print(to_email)
-#     # from_email = settings.DEFAULT_FROM_EMAIL
-#     # print(from_email)
-#     # message = 'This is my test message'
-#     # recipient_list = [to_email]
-#     # html_message =
-#     # email = send_mail(subject, message, from_email, recipient_list, fail_silently=False, html_message=html_message)
-#     # if email:
-#     #     print('Отправлено')
-#     # else:
-#     #     print('Не отправлено')
-#     mail_subject = 'Activate your account'
-#     message = render_to_string(
-#         'quiz/verify_email.html', {
-#             'user': user.username,
-#             'domain': get_current_site(request).domain,
-#             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-#             'token': account_activation_token.make_token(user),
-#             'protocol': 'https' if request.is_secure() else 'http'
-#         }
-#     )
-#     email = EmailMessage(mail_subject, message, to=[to_email])
-#     if email.send():
-#         print("Отправлено")
-#         return redirect('home')
-#     else:
-#         print("Не отправлено")
+@method_decorator(login_required(login_url='login'), name='dispatch')
+class All_quiz(Number_of_not_answers, ListView):
+    paginate_by = 4
+    model = Quiz
+    template_name = 'quiz/quizes.html'
+    context_object_name = 'list'
+
+    def get_queryset(self):
+        return Quiz.objects.filter(house=self.request.user.house.id).order_by('-created_at').prefetch_related(
+            Prefetch('answer_set', queryset=Answer.objects.filter(user=self.request.user.id)))
 
 
-# def register(request):
-#     if request.method == 'POST':
-#         form = CustomUserCreationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save(commit=False)
-#             user.is_active = False
-#             user.save()
-#             activateEmail(request, user, form.cleaned_data.get('email'))
-#             return redirect('home')
-#     else:
-#         form = CustomUserCreationForm()
-#     return render(request, 'quiz/register.html', {"form": form})
-
-
-# def user_login(request):
-#     if request.method == 'POST':
-#         form = UserLoginForm(data=request.POST)
-#         if form.is_valid():
-#             user = form.get_user()
-#             login(request, user)
-#             return redirect('home')
-#     else:
-#         form = UserLoginForm
-#     return render(request, 'quiz/login.html', {"form": form})
-
-
-def user_logout(request):
-    logout(request)
-    return redirect('login')
-
-
+@method_decorator(anonymous_required(login_url='home'), name='dispatch')
 class Register(View):
     template_name = 'registration/register.html'
 
@@ -150,6 +62,10 @@ class Register(View):
 
     def post(self, request):
         form = CustomUserCreationForm(request.POST)
+        # print('Форма')
+        # print(form)
+        print('Запрос')
+        print(request)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
@@ -162,7 +78,6 @@ class Register(View):
 
 
 class EmailVerify(View):
-
     def get(self, request, uidb64, token):
         user = self.get_user(uidb64)
         if user is not None and token_generator.check_token(user, token):
@@ -182,12 +97,28 @@ class EmailVerify(View):
         return user
 
 
+class News(Number_of_not_answers, ListView):
+    paginate_by = 10
+    queryset = News.objects.all().order_by('-created_at')
+    template_name = 'quiz/news.html'
+    context_object_name = 'news'
+
+
+@method_decorator(anonymous_required(login_url='home'), name='dispatch')
 class MyLoginView(LoginView):
     form_class = MyAuthenticationForm
 
 
 def view_quiz(request, quiz_id):
-    quiz = get_object_or_404(Quiz, pk=quiz_id)
+    quiz = get_object_or_404(Quiz, pk=quiz_id, house=request.user.house)
+    try:
+        now = datetime.datetime.now(tz=timezone.utc)
+        count_active_quiz = Quiz.objects.filter(house=request.user.house.id, finished_at__gt=now)
+        count_active_answers = Answer.objects.filter(quiz__in=count_active_quiz)
+        count_active_not_answer = len(count_active_quiz) - len(count_active_answers)
+        count = count_active_not_answer
+    except:
+        count = 0
     try:
         quiz_answer = Answer.objects.get(quiz=quiz_id)
     except:
@@ -200,6 +131,67 @@ def view_quiz(request, quiz_id):
             return redirect('view_quiz', quiz_id)
     else:
         form = AnswerForm()
-    return render(request, 'quiz/quiz_answer.html', {"form": form, "quiz": quiz, "quiz_answer": quiz_answer})
+    return render(request, 'quiz/quiz_answer.html', {"form": form, "quiz": quiz, "quiz_answer": quiz_answer, "count":count})
 
 
+class MyPasswordChangeView(Number_of_not_answers, PasswordChangeView):
+    pass
+
+
+class MyPasswordChangeDoneView(Number_of_not_answers, PasswordChangeDoneView):
+    pass
+
+
+class MyPasswordResetView(Number_of_not_answers, PasswordResetView):
+    pass
+
+
+class MyPasswordResetDoneView(Number_of_not_answers, PasswordResetDoneView):
+    pass
+
+
+class MyPasswordResetConfirmView(Number_of_not_answers, PasswordResetConfirmView):
+    pass
+
+
+class MyPasswordResetCompleteView(Number_of_not_answers, PasswordResetCompleteView):
+    pass
+
+
+@method_decorator(admin_required(login_url='home'), name='dispatch')
+class ManageHouses(ListView):
+    model = House
+    template_name = 'manage/view_houses.html'
+
+
+@method_decorator(admin_required(login_url='home'), name='dispatch')
+class ManageQuizes(ListView):
+    context_object_name = 'list_quiz'
+    template_name = 'manage/view_quizes.html'
+    paginate_by = 5
+
+    def get_queryset(self):
+        return Quiz.objects.filter(house=self.kwargs['house_id']).order_by('-created_at')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['house'] = House.objects.get(pk=self.kwargs['house_id'])
+        return context
+
+
+@method_decorator(admin_required(login_url='home'), name='dispatch')
+class ManageAnswers(ListView):
+    allow_empty = False
+    model = Quiz
+    template_name = 'manage/view_answers.html'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['quiz'] = get_object_or_404(Quiz, house=self.kwargs['house_id'], pk=self.kwargs['quiz_id'])
+        context['house'] = House.objects.get(pk=self.kwargs['house_id'])
+        context['count_answers_agree'] = Answer.objects.filter(quiz=self.kwargs['quiz_id'],
+                                                               user__house=self.kwargs['house_id'], answer='T').count()
+        context['count_answers_disagree'] = Answer.objects.filter(quiz=self.kwargs['quiz_id'],
+                                                                  user__house=self.kwargs['house_id'],
+                                                                  answer='F').count()
+        return context

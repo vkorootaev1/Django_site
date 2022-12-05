@@ -1,39 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
     <style>
-    .content{
-        margin: 0 auto;
-    }
-    h5 {
-        color: red;
-    }
-    .card{
-        margin-top: 60px;
-    }
-</style>
-    <div class="col-6 content">
+        .content {
+            margin: 0 auto;
+        }
+
+        .card {
+            margin-top: 30px;
+        }
+
+        .card-footer {
+            text-align: right;
+        }
+
+        .card-header h6 {
+            margin: 0;
+        }
+        .navbar nav{
+            align-items: center;
+        }
+    </style>
+    <div class="col-12 col-md-10 col-lg-8 col-xl-6 content">
         {% for item in list %}
             <div class="card">
                 <div class="card-header">
-                    {% if item.quiz.created_at > item.quiz.finished_at %}
-                    <div>
-                        <h6>Голосование закончилось</h6>
-                    </div>
-                {% else %}
-                    <div>
-                        <h6>Голосование активно</h6>
-                    </div>
-                {% endif %}
+                    {% now "Y-m-d-H-i-s" as now_datetime %}
+                    {% if now_datetime > item.finished_at|date:"Y-m-d-H-i-s" %}
+                        <div>
+                            <h6>Голосование закончилось</h6>
+                        </div>
+                    {% else %}
+                        <div>
+                            <h6>Голосование активно (закончится {{ item.finished_at }})</h6>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ item.quiz.title }}</h5>
-                    {% if item.answer != "Вы еще не проголосовали"%}
-                    <p class="card-text">Ваш ответ: {{ item.answer.get_display_answer }}</p>
-                        {% else %}
-                    <p class="card-text">Ваш ответ: Вы еще не проголосовали </p>
+                    <h5 class="card-title">{{ item.title }}</h5>
+                    {% if item.answer_set.all.count != 0 %}
+                        <p class="card-text">Ваш ответ: {{ item.answer_set.all.first.get_display_answer }}</p>
+                    {% else %}
+                        <p class="card-text">Ваш ответ: Вы еще не проголосовали </p>
                     {% endif %}
-                    <a href="{{ item.quiz.get_absolute_url }}" class="btn btn-primary">Подробнее</a>
+                    <a href="{{ item.get_absolute_url}}" class="btn btn-primary">Подробнее</a>
                 </div>
+                <div class="card-footer">{{ item.created_at }}</div>
             </div>
         {% endfor %}
     </div>

@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -15,10 +16,5 @@ def send_email_for_verify(request, user):
         'protocol': 'https'
     }
     message = render_to_string('registration/verify_email.html', context=context)
-    email = EmailMessage('Подтвердите свой Email адрес', message, to=[user.email])
-    email.send()
-    if email.send:
-        print('Отправлено!')
-    else:
-        print('Не отправлено!')
+    send_mail('Подтвердите свой Email адрес', '', settings.EMAIL_HOST_USER, [user.email], html_message=message)
 

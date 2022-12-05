@@ -1,0 +1,55 @@
+{% extends 'manage/base.html' %}
+{% load mathfilters %}
+{% block content %}
+    <style>
+        .content {
+            margin: 0 auto;
+        }
+
+        .content {
+            margin-top: 100px;
+        }
+
+        .card-header h6 {
+            margin: 0;
+        }
+
+        .card-footer {
+            text-align: right;
+        }
+
+        .number {
+            text-decoration: underline;
+        }
+    </style>
+    <div class="col-12 col-md-10 col-lg-8 col-xl-6 content">
+        <div class="card">
+            {% now "Y-m-d-H-i-s" as now_datetime %}
+            <div class="card-header">
+                {% if now_datetime  > quiz.finished_at|date:"Y-m-d-H-i-s" %}
+                    <div>
+                        <h6>Голосование закончилось</h6>
+                    </div>
+                {% else %}
+                    <div>
+                        <h6>Голосование активно (закончится {{ quiz.finished_at }})</h6>
+                    </div>
+                {% endif %}
+                <br>
+            <h6>{{ house.street }}, {{ house.house }}</h6>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ quiz.title }}</h5>
+                <p class="card-text">{{ quiz.text }}</p>
+                <p class="card-text number">Количество согласных: {{ count_answers_agree }}</p>
+                <p class="card-text number">Количество несогласных: {{ count_answers_disagree }}</p>
+                <p class="card-text number">Количество не
+                    проголосовавших: {{ house.max_flat|sub:count_answers_agree|sub:count_answers_disagree }}</p>
+            </div>
+            <div class="card-footer">{{ quiz.created_at }}</div>
+        </div>
+        <div class="card-body">
+            <a href="{% url 'manage_quizes' house.id %}" class="btn btn-primary">Назад</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-Пожалуйста, перейдите в свою почту, чтобы закончить регистрацию
-</body>
-</html>
+{% extends 'base.html' %}
+{% block navbar %}
+    {% include 'other/anonimous_navbar.html' %}
+{% endblock %}
+{% block content %}
+    <style>
+        .content h2 {
+            text-align: center;
+        }
+
+        .content {
+            border: 2px solid black;
+            margin: 100px auto 0;
+        }
+    </style>
+    <div class="content col-10">
+        <h2>Пожалуйста, перейдите в свою почту, чтобы закончить регистрацию</h2>
+    </div>
+
+{% endblock %}
+

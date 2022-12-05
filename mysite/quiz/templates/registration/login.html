@@ -1,15 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>Login</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary btn block">Вход</button>
-</form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block navbar %}
+    {% include 'other/anonimous_navbar.html' %}
+{% endblock %}
+{% block content %}
+    <style>
+        .login-group {
+            margin: 0 auto;
+        }
+
+        .title {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .register {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+    <h1 class="title">Вход</h1>
+    <div class="login-group col-lg-4 col-sm-10">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary btn-block">Вход</button>
+        </form>
+        <div class="register">
+            <p>Еще не зарегистрированы? <a href="{% url 'register' %}">Регистрация</a></p>
+            <p>Забыли пароль? <a href="{% url 'password_reset' %}">Восстановить пароль</a></p>
+        </div>
+    </div>
+{% endblock %}
+
+
